@@ -13,31 +13,36 @@ import (
 func main() {
 	fmt.Println("atomic data online...")
 	var records = load()
+
+	//hello world handler:
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello Server")
 	})
+
+	//atomic number handler:
+	http.HandleFunc("/element", func(w http.ResponseWriter, r *http.Request) {
+		number := r.URL.Query().Get("number")
+		n := parseNumber(number)
+		fmt.Println("request received and processed for element " + number)
+		fmt.Fprintf(w, "%v", elementByNumber(n, records))
+	})
+
 	fmt.Println("trying to start server")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
 
-	//input
-	input := consoleRequest()
-	fmt.Println("element " + input + " requested")
-	i, err := strconv.Atoi(input)
+func elementByNumber(in int, records [][]string) Element {
+	freeze := parseNumber(records[in][2])
+	boil := parseNumber(records[in][3])
+	return Element{in, records[in][1], freeze, boil}
+}
+
+func parseNumber(in string) int {
+	i, err := strconv.Atoi(in)
 	if err != nil {
 		fmt.Println("error bad input " + err.Error())
-	} else {
-		fmt.Println("element " + input + " is a valid element.  building..")
 	}
-	freeze, err := strconv.Atoi(records[i][2])
-	if err != nil {
-		fmt.Println("error bad data for element " + input)
-	}
-	boil, err := strconv.Atoi(records[i][3])
-	if err != nil {
-		fmt.Println("error bad data for element " + input)
-	}
-	a := Element{i, records[i][1], freeze, boil}
-	fmt.Println(a)
+	return i
 }
 
 func consoleRequest() string {
